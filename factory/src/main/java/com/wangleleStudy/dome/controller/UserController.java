@@ -1,6 +1,8 @@
 package com.wangleleStudy.dome.controller;
 
+import com.wangleleStudy.dome.service.UserService;
 import com.wangleleStudy.org.simpleframework.core.annotation.Controller;
+import com.wangleleStudy.org.simpleframework.inject.annotation.AutoWired;
 
 /**
  * {@link UserController}
@@ -13,7 +15,12 @@ import com.wangleleStudy.org.simpleframework.core.annotation.Controller;
  */
 @Controller
 public class UserController {
-  public void test(){
-    System.out.println("test");
+
+  @AutoWired(value = "UserServiceImpl1") private UserService userService;
+
+
+  public UserService test(){
+    return userService;
   }
+
 }

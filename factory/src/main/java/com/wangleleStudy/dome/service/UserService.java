@@ -11,7 +11,6 @@ import com.wangleleStudy.org.simpleframework.core.annotation.Service;
  * @version ${project.version}
  * @date 2023/8/1 20:05
  */
-
 public interface UserService {
 
   public void test();

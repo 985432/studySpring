@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.FileFilter;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
@@ -117,6 +118,22 @@ public class ClassUtil {
       declaredConstructor.setAccessible(accessible);
       return (T) declaredConstructor.newInstance();
     } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * 设置类的属性值
+   * @param field 属性
+   * @param target 类实例
+   * @param value 属性值
+   * @param accessible 是否允许访问私有属性
+   */
+  public static void setField(Field field,Object target,Object value,boolean accessible){
+    field.setAccessible(accessible);
+    try {
+      field.set(target,value);
+    } catch (IllegalAccessException e) {
       throw new RuntimeException(e);
     }
   }
