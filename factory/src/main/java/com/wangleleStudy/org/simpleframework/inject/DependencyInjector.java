@@ -4,9 +4,11 @@ import com.wangleleStudy.org.simpleframework.inject.annotation.AutoWired;
 import com.wangleleStudy.org.simpleframework.singleton.BeanContainer;
 import com.wangleleStudy.org.simpleframework.util.ClassUtil;
 import com.wangleleStudy.org.simpleframework.util.ValidationUtil;
+import jdk.nashorn.internal.runtime.regexp.joni.constants.OPCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -65,17 +67,9 @@ public class DependencyInjector {
     Set<Class<?>> classBySuper = beanContainer.getClassBySuper(fieldClass);
     if (!classBySuper.isEmpty()) {
       if (ValidationUtil.isEmpty(autoWiredValue)) {
-        if (classBySuper.size() == 1) {
-          return beanContainer.getBean(classBySuper.iterator().next());
-        } else {
-          throw new RuntimeException("multiple implemented classes for" + fieldClass.getName() + "please set @AutoWired's value to pick one");
-        }
+        return Optional.ofNullable(classBySuper).orElseThrow(() -> new RuntimeException("multiple implemented classes for" + fieldClass.getName() + "please set @AutoWired's value to pick one")).iterator().next();
       } else {
-        for (Class<?> aClass : classBySuper) {
-          if (autoWiredValue.equals(aClass.getSimpleName())) {
-            return beanContainer.getBean(aClass);
-          }
-        }
+        return beanContainer.getBean(classBySuper.stream().filter(clazz -> autoWiredValue.equals(clazz.getSimpleName())).findFirst().orElseThrow(() -> new RuntimeException("unable to find class:" + autoWiredValue)));
       }
     }
     return null;
