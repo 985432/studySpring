@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
@@ -46,7 +47,7 @@ public class ClassUtil {
       File packageDirectory = new File(resource.getPath());
       extractClassFile(classSet, packageDirectory, packageName);
     }
-    return null;
+    return classSet;
   }
 
   /**
@@ -70,14 +71,26 @@ public class ClassUtil {
           String absoluteFilePath = file.getAbsolutePath();
           if (absoluteFilePath.endsWith(".class")) {
             //若是class文件，直接加载
-            addToClassSet(absoluteFilePath);
+            try {
+              addToClassSet(absoluteFilePath);
+            } catch (ClassNotFoundException e) {
+              throw new RuntimeException(e);
+            }
           }
         }
         return false;
       }
 
-      private void addToClassSet(String absoluteFilePath) {
-
+      private void addToClassSet(String absoluteFilePath) throws ClassNotFoundException {
+          //1.从class文件的绝对值路径里提取出包含了package的类名
+          //如F:\obj\studySpring\factory\target\classes\com\wangleleStudy\org\simpleframework\core\annotation\entity\DellMouse.class
+          //需要弄成com.imooc.entity.dto.MainPageInfoDTO
+          absoluteFilePath = absoluteFilePath.replace(File.separator, ".");
+          String className = absoluteFilePath.substring(absoluteFilePath.indexOf(packageName));
+          className = className.substring(0, className.lastIndexOf("."));
+          //2.通过反射机制获取对应的Class对象并加入到classSet里
+          Class targetClass = loadClass(className);
+          classSet.add(targetClass);
       }
     });
     if (files!=null){
@@ -87,6 +100,27 @@ public class ClassUtil {
     }
 
   }
+
+  /**
+   * 获取Class对象
+   *
+   * @param className class全名=package+类名
+   * @return Class对象
+   */
+  private static Class<?> loadClass(String className) throws ClassNotFoundException {
+    return  Class.forName(className);
+  }
+
+  public static  <T> T newInstance(Class<?> clazz,boolean accessible){
+    try {
+      Constructor declaredConstructor = clazz.getDeclaredConstructor();
+      declaredConstructor.setAccessible(accessible);
+      return (T) declaredConstructor.newInstance();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 
 
   /**
